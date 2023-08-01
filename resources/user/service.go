@@ -1,5 +1,7 @@
 package user
 
+import "github.com/charlygame/CatGameService/utils"
+
 type UserService struct {
 }
 
@@ -11,7 +13,27 @@ func NewUserService() UserService {
 	return s
 }
 
-func (s *UserService) Get(userID string) (User, error) {
-	// user, err := userRepository.Get(userID)
-	return nil, nil
+func (s *UserService) Get(id string) (User, *utils.GameError) {
+	var result User
+	err := userRepository.Get(id, result)
+	if err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+func (s *UserService) Update(id string, document User) (User, *utils.GameError) {
+	err := userRepository.Update(id, document)
+	if err != nil {
+		return document, err
+	}
+	return document, nil
+}
+
+func (s *UserService) Insert(document User) *utils.GameError {
+	_, err := userRepository.Create(document)
+	if err != nil {
+		return err
+	}
+	return nil
 }
