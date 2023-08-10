@@ -2,8 +2,11 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
+	"path"
+	"runtime"
 
 	"github.com/joho/godotenv"
 )
@@ -29,10 +32,13 @@ func InitWithEnvFile(envFile string) {
 		Host:     os.Getenv("HOST"),
 		MongoURI: os.Getenv("MONGO_URI"),
 	}
+	fmt.Printf("%v", config)
 }
 
 func Init() {
-	InitWithEnvFile(".env")
+	_, filename, _, _ := runtime.Caller(0)
+	root := path.Dir(path.Dir(filename))
+	InitWithEnvFile(root + "/.env")
 }
 
 func GetConfig() appConfig {

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/charlygame/CatGameService/db"
@@ -65,14 +66,31 @@ func (r *MongoRepository) List(query interface{}, projection interface{}, skip i
 	return nil
 }
 
+func (r *MongoRepository) FindOne(query interface{}, data interface{}) *utils.GameError {
+	c := db.GetDB().Collection(r.Collection)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
+	defer cancel()
+
+	if query == nil {
+		query = bson.M{}
+	}
+
+	if err := c.FindOne(ctx, query).Decode(data); err != nil {
+		return &utils.GameError{StatusCode: 404, Err: err}
+	}
+	return nil
+}
+
 func (r *MongoRepository) Get(id string, result interface{}) *utils.GameError {
 	c := db.GetDB().Collection(r.Collection)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
 	defer cancel()
 
 	objectId, objectIdParseError := primitive.ObjectIDFromHex(id)
+	fmt.Printf("objectId: %v\n", objectId)
 	if objectIdParseError == nil {
 		if err := c.FindOne(ctx, bson.D{{Key: "_id", Value: objectId}}).Decode(result); err != nil {
+			fmt.Printf("err: %v\n", err)
 			return &utils.GameError{StatusCode: 404, Err: err}
 		}
 	} else {
@@ -127,9 +145,9 @@ func (r *MongoRepository) Update(id string, document interface{}) *utils.GameErr
 	)
 
 	if objectIdParseError == nil {
-		updateResult, err = c.ReplaceOne(ctx, bson.D{{Key: "_id", Value: objectId}}, document)
+		updateResult, err = c.UpdateOne(ctx, bson.D{{Key: "_id", Value: objectId}}, bson.D{{Key: "$set", Value: document}})
 	} else {
-		updateResult, err = c.ReplaceOne(ctx, bson.D{{Key: "_id", Value: id}}, document)
+		updateResult, err = c.UpdateOne(ctx, bson.D{{Key: "_id", Value: id}}, bson.D{{Key: "$set", Value: document}})
 	}
 
 	if err != nil {

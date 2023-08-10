@@ -14,7 +14,7 @@ import (
 )
 
 func initTest() {
-	test.Init("../test.env")
+	test.Init("../.env")
 }
 
 func TestFindShouldReturn0Items(t *testing.T) {
@@ -125,6 +125,30 @@ func TestFindShouldReturnLimited(t *testing.T) {
 
 	assert.Equal(t, 10, len(results))
 
+}
+
+func TestFindOneReturnOneItem(t *testing.T) {
+	initTest()
+	defer test.Clear()
+
+	var docs bson.A
+	for i := 0; i <= 10; i++ {
+		doc := bson.D{
+			{Key: "id", Value: int32(i)},
+			{Key: "title", Value: fmt.Sprintf("Test Title %d", i)},
+		}
+		docs = append(docs, doc)
+	}
+
+	db.GetDB().Collection("test").InsertMany(context.Background(), docs)
+
+	mongo_repository := MongoRepository{
+		Collection: "test",
+	}
+
+	var results bson.M
+	mongo_repository.FindOne(bson.D{{Key: "id", Value: 1}}, &results)
+	assert.Equal(t, int32(1), results["id"])
 }
 
 func TestFindShouldReturnSkipped(t *testing.T) {
