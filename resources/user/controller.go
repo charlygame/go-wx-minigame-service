@@ -3,12 +3,13 @@ package user
 import (
 	"net/http"
 
+	"github.com/charlygame/CatGameService/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func Get(c *gin.Context) {
-	userID := c.Param("user_id")
+	userID := c.GetHeader("x-user-id")
 	s := NewUserService()
 	result, err := s.Get(userID)
 	if err != nil {
@@ -35,7 +36,7 @@ func Insert(c *gin.Context) {
 }
 
 func Update(c *gin.Context) {
-	userID := c.Param("user_id")
+	userID := c.GetString("x-user-id")
 	var body User
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -79,7 +80,13 @@ func WXLogin(c *gin.Context) {
 			c.JSON(err.StatusCode, err)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"user_id": userId})
+
+		token, err := utils.JwtSign(utils.NewWxGameClaims(userId))
+		if err != nil {
+			c.JSON(err.StatusCode, err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"token": token})
 
 		return
 	} else {
@@ -93,6 +100,22 @@ func WXLogin(c *gin.Context) {
 			c.JSON(err.StatusCode, err)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"user_id": user.ID})
+		token, err := utils.JwtSign(utils.NewWxGameClaims(user.ID))
+		if err != nil {
+			c.JSON(err.StatusCode, err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"token": token})
 	}
+}
+
+func GetRankList(c *gin.Context) {
+	s := NewUserService()
+	// TODO: 分页逻辑
+	result, err := s.GetRankList(0, 1000)
+	if err != nil {
+		c.JSON(err.StatusCode, err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
 }

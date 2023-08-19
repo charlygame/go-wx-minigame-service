@@ -124,5 +124,4 @@ func TestWXLoginShouldReturn200(t *testing.T) {
 	assert.NotEmpty(t, got["session_key"])
 	assert.NotEmpty(t, got["openid"])
 	assert.NotEmpty(t, got["unionid"])
-
 }

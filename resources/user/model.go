@@ -11,4 +11,5 @@ type User struct {
 	Score        int    `json:"score,omitempty" bson:"score,omitempty"`
 	WxOpenId     string `json:"wx_open_id,omitempty" bson:"wx_open_id,omitempty"`
 	WxSessionKey string `json:"wx_session_key,omitempty" bson:"wx_session_key,omitempty"`
+	Avatar       string `json:"avatar,omitempty" bson:"avatar,omitempty"`
 }

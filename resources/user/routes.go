@@ -1,13 +1,22 @@
 package user
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/charlygame/CatGameService/utils"
+	"github.com/gin-gonic/gin"
+)
 
 func AddUserRoutes(rg *gin.RouterGroup) {
-	userRoute := rg.Group("/user")
+
+	userPrivate := rg.Group("/user")
+	userPrivate.Use(utils.JwtAuthMiddleware())
 	{
-		userRoute.GET("/:user_id", Get)
-		userRoute.POST("/", Insert)
-		userRoute.PUT("/:user_id", Update)
-		userRoute.GET("/wx_login/:code", WXLogin)
+		userPrivate.GET("/", Get)
+		userPrivate.PUT("/", Update)
+		userPrivate.GET("/rank-list", GetRankList)
+	}
+
+	userPublic := rg.Group("/user")
+	{
+		userPublic.GET("/wx_login/:code", WXLogin)
 	}
 }
